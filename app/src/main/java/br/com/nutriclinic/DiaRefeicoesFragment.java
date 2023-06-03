@@ -1,5 +1,7 @@
 package br.com.nutriclinic;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -14,12 +16,20 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import br.com.nutriclinic.api.ApiClient;
+import br.com.nutriclinic.api.ApiClientConfig;
+import br.com.nutriclinic.api.RefeicoesDiaModel;
+import br.com.nutriclinic.config.SharedPreferencesConfig;
 import br.com.nutriclinic.domain.DatabaseMock;
 import br.com.nutriclinic.domain.RefeicaoDTO;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class DiaRefeicoesFragment extends Fragment {
@@ -36,38 +46,57 @@ public class DiaRefeicoesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Bundle args = getArguments();
 
-        String diaSemana = args.getString("diaSemana");
+        Integer diaSemana = args.getInt("diaSemana");
 
-        Log.d("diaSemana", "dia da semana: " + diaSemana);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(SharedPreferencesConfig.SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
+        String token = sharedPreferences.getString(SharedPreferencesConfig.TOKEN_KEY, "");
+        Long idPaciente = sharedPreferences.getLong(SharedPreferencesConfig.ID_PACIENTE_KEY, 0);
 
-        List<String> refeicoes = DatabaseMock.getData().stream()
-                .filter(dia -> dia.getDiaSemana().equals(diaSemana))
-                .findFirst()
-                .get()
-                .getRefeicoes()
-                .stream()
-                .map(refeicao -> refeicao.getNome() + " --------- " + refeicao.getHorario())
-                .collect(Collectors.toList());
+        ApiClient apiClient = ApiClientConfig.createClient(ApiClient.class);
 
+        Call<RefeicoesDiaModel> refeicoesDiaCall = apiClient.buscarRefeicoesDoDia(token, idPaciente, diaSemana);
+        refeicoesDiaCall.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<RefeicoesDiaModel> call, Response<RefeicoesDiaModel> response) {
 
-        TextView textView = view.findViewById(R.id.diaSemana);
-        textView.setText(diaSemana);
+                if (response.isSuccessful()) {
 
-        ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, refeicoes) {
+                    RefeicoesDiaModel refeicoesDia = response.body();
+
+                    TextView textView = view.findViewById(R.id.diaSemana);
+                    textView.setText(refeicoesDia.getDiaSemana());
+
+                    ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, refeicoesDia.getRefeicoes()) {
+
+                        @Override
+                        public View getView(int position, View convertView, ViewGroup parent) {
+
+                            View view = super.getView(position, convertView, parent);
+                            TextView text = (TextView) view.findViewById(android.R.id.text1);
+
+                            text.setTextColor(Color.WHITE);
+
+                            return view;
+                        }
+                    };
+                    ListView listView = view.findViewById(R.id.refeicoes);
+                    listView.setAdapter(listAdapter);
+
+                } else {
+                    Toast.makeText(view.getContext(),"Falha ao carregar dados. Tente novamente em instantes", Toast.LENGTH_LONG).show();
+
+                }
+            }
 
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-
-                View view = super.getView(position, convertView, parent);
-                TextView text = (TextView) view.findViewById(android.R.id.text1);
-
-                text.setTextColor(Color.WHITE);
-
-                return view;
+            public void onFailure(Call<RefeicoesDiaModel> call, Throwable t) {
+                Toast.makeText(view.getContext(),"Erro na chamada ao servidor", Toast.LENGTH_SHORT).show();
             }
-        };
-        ListView listView = view.findViewById(R.id.refeicoes);
-        listView.setAdapter(listAdapter);
+        });
+
+
+
+
 
 
     }

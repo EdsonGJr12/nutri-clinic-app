@@ -14,10 +14,10 @@ import java.util.Set;
 import br.com.nutriclinic.domain.DatabaseMock;
 
 public class DiaRefeicoesAdapter extends FragmentStateAdapter {
+    private final List<Integer> diasSemana;
 
-    private final List<String> diasSemana;
 
-    public DiaRefeicoesAdapter(FragmentActivity fragmentActivity, List<String> diasSemana) {
+    public DiaRefeicoesAdapter(FragmentActivity fragmentActivity, List<Integer> diasSemana) {
         super(fragmentActivity);
         this.diasSemana = diasSemana;
     }
@@ -29,9 +29,9 @@ public class DiaRefeicoesAdapter extends FragmentStateAdapter {
 
         Bundle args = new Bundle();
 
-        String diaSemana = diasSemana.get(position);
+        Integer diaSemana = diasSemana.get(position);
 
-        args.putString("diaSemana", diaSemana);
+        args.putInt("diaSemana", diaSemana);
 
         fragment.setArguments(args);
 
