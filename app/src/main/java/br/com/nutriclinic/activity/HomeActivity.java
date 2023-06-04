@@ -1,16 +1,16 @@
-package br.com.nutriclinic;
+package br.com.nutriclinic.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,13 +18,12 @@ import android.widget.Toast;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import br.com.nutriclinic.fragment.DiaRefeicoesAdapter;
+import br.com.nutriclinic.R;
 import br.com.nutriclinic.api.ApiClient;
 import br.com.nutriclinic.api.ApiClientConfig;
-import br.com.nutriclinic.api.TokenModel;
+import br.com.nutriclinic.api.DiaSemanaModel;
 import br.com.nutriclinic.config.SharedPreferencesConfig;
-import br.com.nutriclinic.domain.DatabaseMock;
-import br.com.nutriclinic.domain.DiaRefeicoesDTO;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -39,6 +38,13 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        if (Build.VERSION.SDK_INT >= 21) {
+            Window window = this.getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(this.getResources().getColor(R.color.primary));
+        }
+
         this.nomeUsuarioTextView = findViewById(R.id.nomeUsuario);
 
         SharedPreferences sharedPreferences = getSharedPreferences(SharedPreferencesConfig.SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
@@ -50,15 +56,17 @@ public class HomeActivity extends AppCompatActivity {
 
         ApiClient apiClient = ApiClientConfig.createClient(ApiClient.class);
 
-        Call<List<Integer>> diasSemanaCall = apiClient.pesquisarDiasPlanoAlimentar(token, idPaciente);
+        Call<List<DiaSemanaModel>> diasSemanaCall = apiClient.pesquisarDiasPlanoAlimentar(token, idPaciente);
 
         AppCompatActivity currentActivity = this;
         diasSemanaCall.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<List<Integer>> call, Response<List<Integer>> response) {
+            public void onResponse(Call<List<DiaSemanaModel>> call, Response<List<DiaSemanaModel>> response) {
 
                 if (response.isSuccessful()) {
-                    List<Integer> diasSemana = response.body();
+                    List<Integer> diasSemana = response.body().stream()
+                            .map(dia -> dia.getCodigo())
+                            .collect(Collectors.toList());
 
                     viewPager = findViewById(R.id.viewPager);
 
@@ -72,9 +80,14 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Integer>> call, Throwable t) {
+            public void onFailure(Call<List<DiaSemanaModel>> call, Throwable t) {
                 Toast.makeText(getApplicationContext(),"Erro na chamada ao servidor", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void detalhesPlanoAlimentar(View view) {
+        Intent intent = new Intent(this, DetalhePlanoAlimentarActivity.class);
+        startActivity(intent);
     }
 }

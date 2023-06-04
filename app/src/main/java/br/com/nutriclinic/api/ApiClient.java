@@ -15,8 +15,12 @@ public interface ApiClient {
     @POST("auth")
     Call<TokenModel> logar(@Body LoginForm loginForm);
     @GET("pacientes/{idPaciente}/ultimo-plano/dias-semana")
-    Call<List<Integer>> pesquisarDiasPlanoAlimentar(@Header("Authorization") String token, @Path("idPaciente") Long idPaciente);
-    @GET("pacientes/{idPaciente}/ultimo-plano/dias-semana/{diaSemana}")
+    Call<List<DiaSemanaModel>> pesquisarDiasPlanoAlimentar(@Header("Authorization") String token, @Path("idPaciente") Long idPaciente);
+    @GET("pacientes/{idPaciente}/ultimo-plano/dias-semana/{diaSemana}/refeicoes")
     Call<RefeicoesDiaModel> buscarRefeicoesDoDia(@Header("Authorization") String token, @Path("idPaciente") Long idPaciente, @Path("diaSemana") Integer diaSemana);
+
+    @GET("pacientes/{idPaciente}/ultimo-plano/dias-semana/{diaSemana}/refeicoes/{idRefeicao}/alimentos")
+    Call<List<String>> buscarAlimentosDaRefeicao(@Header("Authorization") String token, @Path("idPaciente") Long idPaciente,
+                                                      @Path("diaSemana") Integer diaSemana, @Path("idRefeicao") Long idRefeicao);
 }
 

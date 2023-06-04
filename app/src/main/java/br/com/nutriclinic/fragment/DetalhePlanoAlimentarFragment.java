@@ -1,49 +1,56 @@
-package br.com.nutriclinic;
+package br.com.nutriclinic.fragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+
+import br.com.nutriclinic.R;
 import br.com.nutriclinic.api.ApiClient;
 import br.com.nutriclinic.api.ApiClientConfig;
 import br.com.nutriclinic.api.RefeicoesDiaModel;
 import br.com.nutriclinic.config.SharedPreferencesConfig;
-import br.com.nutriclinic.domain.DatabaseMock;
-import br.com.nutriclinic.domain.RefeicaoDTO;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class DiaRefeicoesFragment extends Fragment {
+public class DetalhePlanoAlimentarFragment extends Fragment {
+
+    public DetalhePlanoAlimentarFragment() {
+    }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_dia_refeicoes, container, false);
+        return inflater.inflate(R.layout.fragment_detalhe_plano_alimentar, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        ListView list = view.findViewById(R.id.refeicoesList);
+
         Bundle args = getArguments();
 
         Integer diaSemana = args.getInt("diaSemana");
@@ -63,24 +70,10 @@ public class DiaRefeicoesFragment extends Fragment {
 
                     RefeicoesDiaModel refeicoesDia = response.body();
 
-                    TextView textView = view.findViewById(R.id.diaSemana);
-                    textView.setText(refeicoesDia.getDiaSemana());
+                    BaseAdapter adapter = new RefeicaoItemAdapter(getActivity(), refeicoesDia.getRefeicoes(), diaSemana);
 
-                    ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, refeicoesDia.getRefeicoes()) {
+                    list.setAdapter(adapter);
 
-                        @Override
-                        public View getView(int position, View convertView, ViewGroup parent) {
-
-                            View view = super.getView(position, convertView, parent);
-                            TextView text = (TextView) view.findViewById(android.R.id.text1);
-
-                            text.setTextColor(Color.WHITE);
-
-                            return view;
-                        }
-                    };
-                    ListView listView = view.findViewById(R.id.refeicoes);
-                    listView.setAdapter(listAdapter);
 
                 } else {
                     Toast.makeText(view.getContext(),"Falha ao carregar dados. Tente novamente em instantes", Toast.LENGTH_LONG).show();

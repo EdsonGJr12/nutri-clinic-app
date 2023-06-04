@@ -1,4 +1,4 @@
-package br.com.nutriclinic;
+package br.com.nutriclinic.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -8,13 +8,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import br.com.nutriclinic.R;
 import br.com.nutriclinic.api.ApiClient;
 import br.com.nutriclinic.api.ApiClientConfig;
 import br.com.nutriclinic.api.LoginForm;
@@ -34,6 +36,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            Window window = this.getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(this.getResources().getColor(R.color.primary));
+        }
 
         this.loginTextView = findViewById(R.id.login);
         this.senhaTextView = findViewById(R.id.senha);
